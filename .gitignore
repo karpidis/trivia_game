@@ -1,4 +1,4 @@
-./venv
+.venv/
 app/config.py
 app/__pycache__
 app/*.pyc
