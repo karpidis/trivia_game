@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Geography Game</title>
+</head>
+<body>
+    <h1>Which is the flag of {{ country }}?</h1>
+    
+    <form method="post" action="{{ url_for('geography.index') }}">
+        <!-- Hidden input to store the correct flag -->
+        <input type="hidden" name="correct_flag" value="{{ correct_flag }}">
+
+        <div>
+            {% for option in options %}
+                <button type="submit" name="selected_flag" value="{{ option.flag }}">
+                    <img src="{{ url_for('geography.get_flag', filename=option.flag.split('/')[-1]) }}" 
+                         alt="Flag of {{ option.country }}" width="150">
+                </button>
+            {% endfor %}
+        </div>
+    </form>
+
+    {% if result is not none %}
+        <p style="color: {{ 'green' if result else 'red' }}">
+            {{ '✅ Correct!' if result else '❌ Wrong! Try again.' }}
+        </p>
+    {% endif %}
+</body>
+</html>
