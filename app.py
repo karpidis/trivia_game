@@ -1,10 +1,22 @@
-from flask import Flask
+import sys
+import os
+from flask import Flask, render_template
+
+# Ensure Flask can find 'games'
+sys.path.append(os.path.join(os.path.dirname(__file__), "app", "games"))
+
+# Import the Geography game Blueprint
+from geography import geography_bp
 
 app = Flask(__name__)
 
-@app.route('/')
-def home():
-    return "Welcome to the Trivia Game!"
+# Register the Geography Blueprint
+app.register_blueprint(geography_bp)
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+# Home page with link to the Geography game
+@app.route("/")
+def home():
+    return render_template("home.html")
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0")
