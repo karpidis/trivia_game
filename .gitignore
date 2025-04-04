@@ -8,3 +8,5 @@ app/*.pyi
 app/*.pyw
 app/*.pyz
 app/*.pyzw
+__pycache__/
+*.pyc
