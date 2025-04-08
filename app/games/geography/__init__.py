@@ -31,19 +31,47 @@ def get_question():
 @geography_bp.route("/", methods=["GET", "POST"])
 def index():
     """Handles displaying questions and processing answers."""
-    result = None  # Default to no result
-
-    # If the user submitted an answer
     if request.method == "POST":
-        selected_flag = request.form.get("selected_flag")  # Get the selected flag
-        correct_flag = request.form.get("correct_flag")  # Get the correct answer
+        selected_flag = request.form.get("selected_flag")
+        correct_flag = request.form.get("correct_flag")
+        correct_country = request.form.get("correct_country")
 
-        result = selected_flag == correct_flag  # Check correctness
+        is_correct = selected_flag == correct_flag
 
-    # Generate a new question
+        if is_correct:
+            # Correct → go straight to next question, but show message
+            country, correct_flag, options = get_question()
+            return render_template(
+                "geography.html",
+                mode="question",
+                country=country,
+                correct_flag=correct_flag,
+                options=options,
+                result="✅ Correct! Well done."
+            )
+
+        else:
+            # Wrong → show the correct flag only, then redirect after 3s
+            return render_template(
+                "geography.html",
+                mode="show_answer",
+                correct_flag=correct_flag,
+                correct_country=correct_country
+            )
+
+    return _render_new_question()
+
+def _render_new_question():
     country, correct_flag, options = get_question()
+    return render_template(
+        "geography.html",
+        mode="question",
+        country=country,
+        correct_flag=correct_flag,
+        options=options,
+        result=None
+    )
 
-    return render_template("geography.html", country=country, options=options, correct_flag=correct_flag, result=result)
 
 @geography_bp.route("/flags/<path:filename>")  # Allow serving images from subfolders
 def get_flag(filename):

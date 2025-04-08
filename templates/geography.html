@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Basic setup for HTML page -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Geography Game</title>
+
+    <!-- Styling for layout, flags, and feedback -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -47,25 +50,49 @@
     </style>
 </head>
 <body>
-    <h1>Which is the flag of {{ country }}?</h1>
-    
-    <form method="post" action="{{ url_for('geography.index') }}">
-        <input type="hidden" name="correct_flag" value="{{ correct_flag }}">
 
+    <!-- This section is for the standard question view -->
+    {% if mode == "question" %}
+        <h1>Which is the flag of {{ country }}?</h1>
+
+        <!-- Form to submit the user's flag selection -->
+        <form method="post" action="{{ url_for('geography.index') }}">
+            <!-- Hidden fields to carry correct answer info -->
+            <input type="hidden" name="correct_flag" value="{{ correct_flag }}">
+            <input type="hidden" name="correct_country" value="{{ country }}">
+
+            <!-- Render the 3 flag options -->
+            <div class="flag-container">
+                {% for option in options %}
+                    <button type="submit" name="selected_flag" value="{{ option.flag }}" class="flag-option">
+                        <img src="{{ url_for('geography.get_flag', filename=option.flag.split('/')[-1]) }}"
+                             alt="Flag of {{ option.country }}" width="150">
+                    </button>
+                {% endfor %}
+            </div>
+        </form>
+
+        <!-- If there’s a result (e.g., “Correct!”), show it -->
+        {% if result %}
+            <p class="feedback" style="color: green;">{{ result }}</p>
+        {% endif %}
+
+    <!-- This section is only shown after a wrong answer -->
+    {% elif mode == "show_answer" %}
+        <h1 style="color: red;">❌ Incorrect.</h1>
+        <p>The correct flag of {{ correct_country }} was:</p>
         <div class="flag-container">
-            {% for option in options %}
-                <button type="submit" name="selected_flag" value="{{ option.flag }}" class="flag-option">
-                    <img src="{{ url_for('geography.get_flag', filename=option.flag.split('/')[-1]) }}" 
-                         alt="Flag of {{ option.country }}" width="150">
-                </button>
-            {% endfor %}
+            <img src="{{ url_for('geography.get_flag', filename=correct_flag.split('/')[-1]) }}"
+                 alt="Correct flag of {{ correct_country }}" width="200">
         </div>
-    </form>
 
-    {% if result is not none %}
-        <p class="feedback" style="color: {{ 'green' if result else 'red' }}">
-            {{ '✅ Correct!' if result else '❌ Wrong! Try again.' }}
-        </p>
+        <!-- Automatically reload the page after 3 seconds -->
+        <script>
+            setTimeout(() => {
+                window.location.href = "{{ url_for('geography.index') }}";
+            }, 3000);
+        </script>
     {% endif %}
+
 </body>
 </html>
