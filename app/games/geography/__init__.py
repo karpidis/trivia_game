@@ -28,16 +28,26 @@ def get_question():
     random.shuffle(options)  # Shuffle the answer order
     return correct_entry["country"], correct_entry["file"], options
 
+
+def is_correct_answer(selected_flag, correct_country):
+    """Check if the selected flag matches the correct country."""
+    for entry in GAME_DATA:
+        if entry["country"] == correct_country:
+            if entry["file"] == selected_flag:
+                return True, entry["file"]
+            else:
+                return False, entry["file"]
 @geography_bp.route("/", methods=["GET", "POST"])
 def index():
+
     """Handles displaying questions and processing answers."""
+
     if request.method == "POST":
         selected_flag = request.form.get("selected_flag")
-        correct_flag = request.form.get("correct_flag")
+        #correct_flag = request.form.get("correct_flag")
         correct_country = request.form.get("correct_country")
 
-        is_correct = selected_flag == correct_flag
-
+        is_correct, correct_flag = is_correct_answer(selected_flag, correct_country)
         if is_correct:
             # Correct → go straight to next question, but show message
             country, correct_flag, options = get_question()
@@ -45,7 +55,7 @@ def index():
                 "geography.html",
                 mode="question",
                 country=country,
-                correct_flag=correct_flag,
+                #correct_flag=correct_flag,
                 options=options,
                 result="✅ Correct! Well done."
             )
