@@ -58,7 +58,6 @@
         <!-- Form to submit the user's flag selection -->
         <form method="post" action="{{ url_for('geography.index') }}">
             <!-- Hidden fields to carry correct answer info -->
-            <input type="hidden" name="correct_flag" value="{{ correct_flag }}">
             <input type="hidden" name="correct_country" value="{{ country }}">
 
             <!-- Render the 3 flag options -->
@@ -66,7 +65,7 @@
                 {% for option in options %}
                     <button type="submit" name="selected_flag" value="{{ option.flag }}" class="flag-option">
                         <img src="{{ url_for('geography.get_flag', filename=option.flag.split('/')[-1]) }}"
-                             alt="Flag of {{ option.country }}" width="150">
+                              width="150">
                     </button>
                 {% endfor %}
             </div>
