@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, send_from_directory
 import os
 import json
 import random
+import db
 
 # Create Blueprint for the Geography game
 geography_bp = Blueprint("geography", __name__, url_prefix="/geography")
@@ -26,6 +27,14 @@ def get_question():
         {"country": wrong_entries[1]["country"], "flag": wrong_entries[1]["file"], "correct": False},
     ]
     random.shuffle(options)  # Shuffle the answer order
+    #here has to be a function to register the question to the database and also show the registered rating.
+    #If it is first time to give 1600 points
+    # Register question (no answer yet)
+    db.register_question(
+        correct_flag=correct_entry["file"],
+        wrong_flag1=wrong_entries[0]["file"],
+        wrong_flag2=wrong_entries[1]["file"]
+    )
     return correct_entry["country"], correct_entry["file"], options
 
 
@@ -37,6 +46,8 @@ def is_correct_answer(selected_flag, correct_country):
                 return True, entry["file"]
             else:
                 return False, entry["file"]
+            
+
 @geography_bp.route("/", methods=["GET", "POST"])
 def index():
 
@@ -44,13 +55,13 @@ def index():
 
     if request.method == "POST":
         selected_flag = request.form.get("selected_flag")
-        #correct_flag = request.form.get("correct_flag")
         correct_country = request.form.get("correct_country")
 
         is_correct, correct_flag = is_correct_answer(selected_flag, correct_country)
         if is_correct:
             # Correct → go straight to next question, but show message
             country, correct_flag, options = get_question()
+            # Here you can add logic to register the correct answer in the database
             return render_template(
                 "geography.html",
                 mode="question",
@@ -62,6 +73,7 @@ def index():
 
         else:
             # Wrong → show the correct flag only, then redirect after 3s
+            # Here you can add logic to register the wrong answer in the database
             return render_template(
                 "geography.html",
                 mode="show_answer",
