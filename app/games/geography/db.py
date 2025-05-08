@@ -34,7 +34,8 @@ def question_exists(correct_flag, wrong1, wrong2):
     conn.close()
     return exists
 
-def check_update_question(correct_flag, wrong1, wrong2):
+def insert_or_update_question(correct_flag, wrong1, wrong2): #dict for arguments, 
+    #better name upsert_question
     """
     Ensure the question is in the database and update its times_appeared.
     If it doesn't exist, insert it with times_appeared=1.
@@ -130,11 +131,10 @@ def update_question_results(correct_flag, wrong1, wrong2, selected_flag):
     # Run a single UPDATE that increments the right column
     cur.execute(f"""
         UPDATE Questions
-           SET {column} = {column} + 1
+           SET {column} = {column} + 1 
          WHERE correct_flag = ?
            AND option_flag1 = ?
            AND option_flag2 = ?
-           AND legal        = 1
     """, (correct_flag, wrong1, wrong2))
 
     conn.commit()
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     print("Exists before:", question_exists(correct_flag, wrong1, wrong2))
 
     # 2) Register that the question appeared
-    check_update_question(correct_flag, wrong1, wrong2)
+    insert_or_update_question(correct_flag, wrong1, wrong2)
 
     # 3) Now it surely exists
     print("Exists after insertion:", question_exists(correct_flag, wrong1, wrong2))
