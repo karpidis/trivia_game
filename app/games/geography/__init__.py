@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, send_from_directory
 import os
 import json
 import random
-
+import db
 # Create Blueprint for the Geography game
 geography_bp = Blueprint("geography", __name__, url_prefix="/geography")
 
@@ -15,18 +15,27 @@ with open(DATA_PATH, "r", encoding="utf-8") as file:
     GAME_DATA = json.load(file)
 
 def get_question():
-    """Generate a random question with one correct and two incorrect flags."""
-    correct_entry = random.choice(GAME_DATA)  # Pick a correct country
-    wrong_entries = random.sample([c for c in GAME_DATA if c != correct_entry], 2)  # Pick two incorrect ones
+    correct_entry = random.choice(GAME_DATA)
+    wrong_entries = random.sample([c for c in GAME_DATA if c != correct_entry], 2)
 
-    # Structure the answer choices
     options = [
         {"country": correct_entry["country"], "flag": correct_entry["file"], "correct": True},
         {"country": wrong_entries[0]["country"], "flag": wrong_entries[0]["file"], "correct": False},
         {"country": wrong_entries[1]["country"], "flag": wrong_entries[1]["file"], "correct": False},
     ]
-    random.shuffle(options)  # Shuffle the answer order
-    return correct_entry["country"], correct_entry["file"], options
+
+    correct_flag = options[0]["flag"]
+    wrong_flags = sorted([opt["flag"] for opt in options if not opt["correct"]])
+
+    status = db.question_exists(correct_flag, wrong_flags[0], wrong_flags[1])
+
+    if status == "illegal":
+        return get_question()  # Retry with a different combination
+
+    # If status is "legal" or "new", we can proceed
+    random.shuffle(options)
+    return correct_entry["country"], correct_flag, options
+
 
 
 def is_correct_answer(selected_flag, correct_country):

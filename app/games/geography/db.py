@@ -6,33 +6,29 @@ DB_PATH = os.path.join(os.path.dirname(__file__), 'flag_game.db')
 
 def question_exists(correct_flag, wrong1, wrong2):
     """
-    Return True if a legal question with exactly these three flags
-    already exists in Questions; False otherwise.
+    Return one of:
+    - "legal"   → exists and is legal (legal = 1)
+    - "illegal" → exists and is marked illegal (legal = 0)
+    - "new"     → does not exist in the DB yet
     """
-    # Ensure the wrong flags are in the same order we store them
     wrong1, wrong2 = sorted([wrong1, wrong2])
-
-    # 1) Open connection and cursor
     conn = sqlite3.connect(DB_PATH)
-    cur  = conn.cursor()
-
-    # 2) Run a SELECT that only returns one row if it exists
+    cur = conn.cursor()
     cur.execute("""
-        SELECT 1
+        SELECT legal
           FROM Questions
          WHERE correct_flag = ?
            AND option_flag1 = ?
            AND option_flag2 = ?
-           AND legal = 1
          LIMIT 1
     """, (correct_flag, wrong1, wrong2))
-
-    # 3) fetchone() is None if no row was found
-    exists = (cur.fetchone() is not None)
-
-    # 4) Clean up
+    row = cur.fetchone()
     conn.close()
-    return exists
+
+    if row is None:
+        return "new"
+    return "legal" if row[0] == 1 else "illegal"
+
 
 def insert_or_update_question(correct_flag, wrong1, wrong2): #dict for arguments, 
     #better name upsert_question
