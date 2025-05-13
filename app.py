@@ -10,6 +10,8 @@ from geography import geography_bp
 
 app = Flask(__name__)
 
+app = Flask(__name__)
+app.secret_key = "replace_this_with_a_random_secret_key"
 # Register the Geography Blueprint
 app.register_blueprint(geography_bp)
 
