@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, send_from_directory
+from flask import Blueprint, render_template, request, send_from_directory, session
 import os
 import json
 import random
@@ -26,16 +26,11 @@ def get_question():
 
     correct_flag = options[0]["flag"]
     wrong_flags = sorted([opt["flag"] for opt in options if not opt["correct"]])
+    # Insert or update DB to track appearance
+    db.insert_or_update_question(correct_flag, wrong1, wrong2)
 
-    status = db.question_exists(correct_flag, wrong_flags[0], wrong_flags[1])
-
-    if status == "illegal":
-        return get_question()  # Retry with a different combination
-
-    # If status is "legal" or "new", we can proceed
     random.shuffle(options)
     return correct_entry["country"], correct_flag, options
-
 
 
 def is_correct_answer(selected_flag, correct_country):
@@ -46,6 +41,8 @@ def is_correct_answer(selected_flag, correct_country):
                 return True, entry["file"]
             else:
                 return False, entry["file"]
+            
+
 @geography_bp.route("/", methods=["GET", "POST"])
 def index():
 
@@ -57,6 +54,8 @@ def index():
         correct_country = request.form.get("correct_country")
 
         is_correct, correct_flag = is_correct_answer(selected_flag, correct_country)
+        # Update the database with the question
+        db.update_question_results(correct_flag, wrong1, wrong2, selected_flag)
         if is_correct:
             # Correct → go straight to next question, but show message
             country, correct_flag, options = get_question()
@@ -90,6 +89,7 @@ def _render_new_question():
         options=options,
         result=None
     )
+
 
 
 @geography_bp.route("/flags/<path:filename>")  # Allow serving images from subfolders
