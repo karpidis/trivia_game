@@ -27,6 +27,7 @@ def get_question():
     correct_flag = correct_entry["file"]
     wrong1 = wrong_entries[0]["file"]
     wrong2 = wrong_entries[1]["file"]
+    print(f"Correct: {correct_flag}, Wrong1: {wrong1}, Wrong2: {wrong2}")
 
     # Insert or update this question appearance in the DB
     db.insert_or_update_question(correct_flag, wrong1, wrong2)
