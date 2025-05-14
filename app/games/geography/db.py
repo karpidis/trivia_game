@@ -26,7 +26,7 @@ def question_exists(correct_flag, wrong1, wrong2):
     conn.close()
 
     if row is None:
-        return "new"
+        return False
     return "legal" if row[0] == 1 else "illegal"
 
 
@@ -39,6 +39,9 @@ def insert_or_update_question(correct_flag, wrong1, wrong2): #dict for arguments
     """
     # 1) Determine whether this question already exists
     exists = question_exists(correct_flag, wrong1, wrong2)
+    
+    if exists == "illegal":
+        return None
     # 2) Delegate to the updater
     update_questions_db(exists, correct_flag, wrong1, wrong2)
 
@@ -74,9 +77,12 @@ def update_questions_db(exists, correct_flag, wrong1, wrong2):
                AND option_flag1 = ?
                AND option_flag2 = ?
         """, (correct_flag, wrong1, wrong2))
-
+        
     conn.commit()
     conn.close()
+    return True
+
+
 def delete_question(correct_flag, wrong1, wrong2):
     """
     Remove the question row matching (correct_flag, wrong1, wrong2).

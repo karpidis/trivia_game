@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, send_from_directory, sess
 import os
 import json
 import random
-from . import db
+from . import db as db
 
 # Create Blueprint for the Geography game
 geography_bp = Blueprint("geography", __name__, url_prefix="/geography")
@@ -25,12 +25,18 @@ def get_question():
 
     # Extract flags for DB and rendering
     correct_flag = correct_entry["file"]
+    correct_iso = correct_entry["iso"]
     wrong1 = wrong_entries[0]["file"]
+    wrong1_iso = wrong_entries[0]["iso"]
     wrong2 = wrong_entries[1]["file"]
-    print(f"Correct: {correct_flag}, Wrong1: {wrong1}, Wrong2: {wrong2}")
+    wrong2_iso = wrong_entries[1]["iso"]
 
     # Insert or update this question appearance in the DB
-    db.insert_or_update_question(correct_flag, wrong1, wrong2)
+    if db.insert_or_update_question(correct_iso, wrong1_iso , wrong2_iso) == "illegal":
+        # If the question is illegal, regenerate a new one
+        return get_question()
+    
+    
 
     # Prepare the options to show to the user
     options = [
@@ -40,20 +46,24 @@ def get_question():
     ]
 
     random.shuffle(options)
-    return correct_entry["country"], correct_flag, wrong1, wrong2, options
+    return correct_entry["country"], correct_flag,correct_iso, wrong1, wrong1_iso, wrong2, wrong2_iso, options
 
 def _render_new_question():
     """
     Generate a new question and save its data to session for secure checking later.
     """
-    country, correct_flag, wrong1, wrong2, options = get_question()
+    country, correct_flag,correct_iso,wrong1, wrong1_iso, wrong2, wrong2_iso, options = get_question()
 
     # Save necessary values to session (not visible to the browser)
     session["current_question"] = {
         "correct_flag": correct_flag,
-        "wrong1": wrong1,
+        "correct_iso": correct_iso,
+        "wrong1":wrong1,
+        "wrong1_iso": wrong1_iso,
         "wrong2": wrong2,
+        "wrong2_iso": wrong2_iso,
         "country": country,
+
     }
 
     return render_template(
@@ -77,19 +87,22 @@ def index():
 
         # Load correct answer and wrong options from session
         q = session.get("current_question", {})
+        correct_iso = q.get("correct_iso")
         correct_flag = q.get("correct_flag")
-        wrong1 = q.get("wrong1")
-        wrong2 = q.get("wrong2")
+        wrong1_iso = q.get("wrong1_iso")
+        wrong2_iso = q.get("wrong2_iso")
+        wrong1_flag  = q.get("wrong1")
+        wrong2_flag = q.get("wrong2")
 
         # If any session value is missing, regenerate
-        if not all([correct_flag, wrong1, wrong2]):
+        if not all([correct_flag, wrong1_iso, wrong2_iso]):
             return _render_new_question()
 
         is_correct = selected_flag == correct_flag
-
+        selected_iso = correct_iso if is_correct else (wrong1_iso if selected_flag == wrong1_flag else wrong2_iso)
         # Log user's answer in the database
-        db.update_question_results(correct_flag, wrong1, wrong2, selected_flag)
-
+        db.update_question_results(correct_iso, wrong1_iso, wrong2_iso, selected_iso)
+        
         if is_correct:
             # If correct, show next question with success message
             return _render_new_question()
