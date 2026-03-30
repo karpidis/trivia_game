@@ -10,3 +10,4 @@ app/*.pyz
 app/*.pyzw
 __pycache__/
 *.pyc
+*.db

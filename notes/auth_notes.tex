@@ -1,0 +1,162 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Trivia Game --- Auth Notes}
+\lhead{Flask User System}
+\cfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{gray!10},
+    frame=single,
+    breaklines=true,
+    keywordstyle=\color{blue},
+    stringstyle=\color{orange},
+    commentstyle=\color{green!60!black},
+    language=Python
+}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE \textbf{Flask User Authentication}}\\[0.5em]
+    {\large Trivia Game --- Study Notes}\\[0.3em]
+    {\small Educational Project}
+\end{center}
+
+\vspace{1em}
+\hrule
+\vspace{1.5em}
+
+% ──────────────────────────────────────────────
+\section{What Already Exists}
+
+\begin{itemize}
+    \item A \texttt{User} entry in the database
+    \item Flask \texttt{session} --- already used for \texttt{current\_question} in the game
+\end{itemize}
+
+% ──────────────────────────────────────────────
+\section{The 5 Steps for Users}
+
+\subsection{Step 1 --- Register}
+\begin{enumerate}
+    \item Show a form: ask for username and password
+    \item \textbf{Hash} the password --- never store it as plain text
+    \item Save the new \texttt{User} record to the database
+    \item Redirect the user to the Login page
+\end{enumerate}
+
+\subsection{Step 2 --- Login}
+\begin{enumerate}
+    \item Show a form: ask for username and password
+    \item Look up the user in the DB by username
+    \item Compare the submitted password against the stored hash
+    \item If they match $\rightarrow$ save the user's id in the session:
+\begin{lstlisting}
+session["user_id"] = user.id
+\end{lstlisting}
+    \item Redirect to the game
+\end{enumerate}
+
+\subsection{Step 3 --- Logout}
+\begin{enumerate}
+    \item Remove the user id from the session:
+\begin{lstlisting}
+session.pop("user_id", None)
+\end{lstlisting}
+    \item Redirect to the home page
+\end{enumerate}
+
+\subsection{Step 4 --- Who is playing right now?}
+\begin{enumerate}
+    \item Check the session at the top of any route:
+\begin{lstlisting}
+user_id = session.get("user_id")
+if user_id:
+    # logged in user
+else:
+    # guest
+\end{lstlisting}
+\end{enumerate}
+
+\subsection{Step 5 --- Protect a route (optional, for later)}
+\begin{enumerate}
+    \item If a page requires login, check at the top of the route
+    \item If not logged in $\rightarrow$ redirect to login page
+\end{enumerate}
+
+% ──────────────────────────────────────────────
+\section{The Name Entry Flow (Geography Game)}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{User types} & \textbf{Condition} & \textbf{Action} \\
+\midrule
+\texttt{db}         & name == ``db''     & Ask: ``Do you want to login?'' \\
+                    & $\rightarrow$ Yes  & Redirect to \texttt{/login} \\
+                    & $\rightarrow$ No   & Back to name entry \\
+\midrule
+anything else       & name != ``db''     & Ask: ``Guest or Register?'' \\
+                    & $\rightarrow$ Guest    & Save name to session, start game \\
+                    & $\rightarrow$ Register & Redirect to \texttt{/register} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ──────────────────────────────────────────────
+\section{Files to Create or Edit}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{File} & \textbf{Purpose} \\
+\midrule
+\texttt{app/models.py}             & Add \texttt{User} model (username, password hash) \\
+\texttt{app/auth.py}               & Register, Login, Logout routes \\
+\texttt{templates/register.html}   & Registration form \\
+\texttt{templates/login.html}      & Login form \\
+\texttt{geography/\_\_init\_\_.py} & Name entry logic before the game starts \\
+\texttt{templates/geography.html}  & Name entry / login prompt / guest screens \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ──────────────────────────────────────────────
+\section{Key Concepts to Remember}
+
+\begin{description}
+    \item[Hashing] A one-way transformation of a password. You can never reverse it.
+    Use \texttt{werkzeug.security}: \\
+    \texttt{generate\_password\_hash()} to save, \\
+    \texttt{check\_password\_hash()} to verify.
+
+    \item[Session] A small dictionary stored securely in the browser cookie.
+    Flask signs it with a \texttt{SECRET\_KEY} so the user cannot tamper with it.
+
+    \item[Blueprint] A way to split routes into separate files.
+    The geography game is already a Blueprint. Auth will be another one.
+
+    \item[Redirect] After login or register, always redirect --- never render directly.
+    This prevents the browser from re-submitting the form on refresh.
+\end{description}
+
+\vspace{2em}
+\hrule
+\vspace{0.5em}
+{\small \textit{Next step: open \texttt{app/models.py} and check the User model before writing any route.}}
+
+\end{document}

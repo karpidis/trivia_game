@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trivia Game – TODO List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            color: #111;
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            background: #333;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            padding: 6px 0;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .box {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #333;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .done .box {
+            background: #333;
+        }
+        .done span {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .note {
+            font-size: 0.85em;
+            color: #555;
+            margin-left: 26px;
+            margin-bottom: 6px;
+        }
+        .print-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 30px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        @media print {
+            .print-btn { display: none; }
+            body { margin: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="print-btn" onclick="window.print()">Print this page</button>
+
+    <h1>Trivia Game &mdash; TODO List</h1>
+
+    <h2>1. User Management</h2>
+    <ul>
+        <li><span class="box"></span><span>Name entry for guests (stored in Flask session)</span></li>
+        <li><span class="box"></span><span>Register page (username + password)</span></li>
+        <li><span class="box"></span><span>Login / Logout</span></li>
+        <li><span class="box"></span><span>Password hashing (werkzeug)</span></li>
+        <li><span class="box"></span><span>User table in DB (id, username, password_hash, elo=1200, created_at)</span></li>
+    </ul>
+
+    <h2>2. Game Loop &mdash; Lives System</h2>
+    <ul>
+        <li><span class="box"></span><span>Track lives (3 wrong = game over)</span></li>
+        <li><span class="box"></span><span>Track current streak per game</span></li>
+        <li><span class="box"></span><span>Game start / game over state</span></li>
+        <li><span class="box"></span><span>Game over screen (final score, streak, Elo change)</span></li>
+    </ul>
+
+    <h2>3. Elo Rating System</h2>
+    <ul>
+        <li><span class="box"></span><span>Add <code>elo</code> column to Questions table (default 1200)</span></li>
+        <li><span class="box"></span><span>Elo calculation function (K=32, player vs question)</span></li>
+        <li><span class="box"></span><span>Update player Elo after each answer (logged-in users only)</span></li>
+        <li><span class="box"></span><span>Update question Elo after each answer</span></li>
+        <li><span class="box"></span><span>GameHistory table (user_id, question_id, result, elo_before, elo_after, timestamp)</span></li>
+    </ul>
+    <p class="note">Elo formula: expected = 1 / (1 + 10 ^ ((question_elo - player_elo) / 400)) &nbsp;|&nbsp; new_elo = old_elo + 32 * (result - expected)</p>
+
+    <h2>4. Stats &amp; Achievements</h2>
+    <ul>
+        <li><span class="box"></span><span>Streak tracking (consecutive correct answers)</span></li>
+        <li><span class="box"></span><span>Game history page (past games, Elo gained/lost)</span></li>
+        <li><span class="box"></span><span>Points per game (Elo delta: end &minus; start of game)</span></li>
+        <li><span class="box"></span><span>Profile page (current Elo, best streak, history)</span></li>
+    </ul>
+
+    <h2>5. Quiz Formats</h2>
+    <ul>
+        <li class="done"><span class="box"></span><span>Three Flags &mdash; One Country (current) &#10003;</span></li>
+        <li><span class="box"></span><span>Three Names &mdash; One Flag (reverse)</span></li>
+        <li><span class="box"></span><span>Write the country name (text input)</span></li>
+    </ul>
+
+    <h2>6. Leaderboard</h2>
+    <ul>
+        <li><span class="box"></span><span>Global leaderboard ranked by Elo</span></li>
+    </ul>
+
+    <h2>7. Code Cleanup</h2>
+    <ul>
+        <li><span class="box"></span><span>Remove unused files (app/__init__.py, routes.py, models.py, forms.py)</span></li>
+        <li><span class="box"></span><span>Fix double <code>app = Flask(__name__)</code> in app.py</span></li>
+    </ul>
+
+</body>
+</html>

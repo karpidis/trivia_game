@@ -1,0 +1,180 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+
+\setlength{\headheight}{14.5pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Trivia Game --- Register Notes}
+\lhead{Flask User System}
+\cfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{gray!10},
+    frame=single,
+    breaklines=true,
+    keywordstyle=\color{blue},
+    stringstyle=\color{orange},
+    commentstyle=\color{green!60!black},
+    language=Python
+}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE \textbf{The Register Function}}\\[0.5em]
+    {\large Trivia Game --- Study Notes}\\[0.3em]
+    {\small Educational Project --- Plain Text Passwords}
+\end{center}
+
+\vspace{1em}
+\hrule
+\vspace{1.5em}
+
+% ──────────────────────────────────────────────
+\section{Where to Write It}
+
+Create a new file: \texttt{app/auth.py}
+
+The app already registers blueprints in \texttt{app.py} (same place \texttt{geography\_bp} is registered).
+You will add the auth blueprint there the same way.
+
+% ──────────────────────────────────────────────
+\section{How Users Are Stored}
+
+Passwords are saved in plain text in a \texttt{.txt} file.\\
+One user per line, username and password separated by a colon:
+
+\begin{lstlisting}
+andreas:mypassword
+john:1234
+\end{lstlisting}
+
+File location: \texttt{app/users.txt} (created automatically on first register)
+
+% ──────────────────────────────────────────────
+\section{The Code --- app/auth.py}
+
+\begin{lstlisting}
+from flask import Blueprint, request, session, redirect, url_for, render_template
+import os
+
+auth_bp = Blueprint("auth", __name__)
+
+USERS_FILE = os.path.join(os.path.dirname(__file__), "users.txt")
+
+def load_users():
+    users = {}
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "r") as f:
+            for line in f:
+                line = line.strip()
+                if ":" in line:
+                    username, password = line.split(":", 1)
+                    users[username] = password
+    return users
+
+@auth_bp.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username").strip()
+        password = request.form.get("password").strip()
+
+        users = load_users()
+
+        if username in users:
+            return render_template("register.html",
+                                   error="Username already exists.")
+
+        with open(USERS_FILE, "a") as f:
+            f.write(f"{username}:{password}\n")
+
+        return redirect(url_for("auth.login"))
+
+    return render_template("register.html")
+\end{lstlisting}
+
+% ──────────────────────────────────────────────
+\section{Register the Blueprint in app.py}
+
+Add these two lines to \texttt{app.py}:
+
+\begin{lstlisting}
+from auth import auth_bp
+app.register_blueprint(auth_bp)
+\end{lstlisting}
+
+% ──────────────────────────────────────────────
+\section{What Each Part Does}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Part} & \textbf{Why} \\
+\midrule
+\texttt{load\_users()} & Reads the txt file into a dictionary \\
+                        & so you can check if a username exists \\
+\addlinespace
+\texttt{if username in users} & Prevents duplicate usernames \\
+\addlinespace
+\texttt{open(..., "a")} & \texttt{"a"} = append mode --- adds the new user \\
+                         & without deleting the others \\
+\addlinespace
+\texttt{split(":", 1)} & The \texttt{1} means split only on the first colon \\
+                        & so passwords containing \texttt{:} won't break it \\
+\addlinespace
+\texttt{redirect(url\_for(...))} & After registering, send the user to login \\
+                                  & Never render directly after a form submit \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ──────────────────────────────────────────────
+\section{The Register Flow Step by Step}
+
+\begin{enumerate}
+    \item User visits \texttt{/register} $\rightarrow$ GET request $\rightarrow$ show the form
+    \item User fills in username and password, submits $\rightarrow$ POST request
+    \item Load all existing users from \texttt{users.txt}
+    \item Check if the username already exists
+    \begin{itemize}
+        \item If yes $\rightarrow$ show the form again with an error message
+        \item If no $\rightarrow$ continue
+    \end{itemize}
+    \item Append \texttt{username:password} as a new line in \texttt{users.txt}
+    \item Redirect to \texttt{/login}
+\end{enumerate}
+
+% ──────────────────────────────────────────────
+\section{Files Involved}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{File} & \textbf{Action} \\
+\midrule
+\texttt{app/auth.py}             & Create --- write the register function here \\
+\texttt{app/users.txt}           & Created automatically on first register \\
+\texttt{templates/register.html} & Create --- the registration form \\
+\texttt{app.py}                  & Edit --- register the auth blueprint \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{2em}
+\hrule
+\vspace{0.5em}
+{\small \textit{Next step: write the login function --- it uses the same \texttt{load\_users()} helper.}}
+
+\end{document}
