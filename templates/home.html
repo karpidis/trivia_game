@@ -10,27 +10,78 @@
             text-align: center;
             padding-top: 50px;
         }
-        h1 {
-            color: #333;
+        h1 { color: #333; }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 250px;
         }
-        a {
+        button, .btn {
             display: inline-block;
-            margin-top: 20px;
+            margin: 8px;
             padding: 10px 20px;
             background-color: #007BFF;
             color: white;
-            text-decoration: none;
+            border: none;
             border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            text-decoration: none;
             transition: background 0.3s;
         }
-        a:hover {
-            background-color: #0056b3;
-        }
+        button:hover, .btn:hover { background-color: #0056b3; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #495057; }
+        .error { color: red; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <h1>🎮 Welcome to the Trivia Game Hub!</h1>
-    <p>Ready to test your knowledge?</p>
-    <a href="{{ url_for('geography.index') }}">🌍 Play the Geography Game</a>
+
+    <!-- ── MODE: name entry ── -->
+    {% if mode == "name_entry" %}
+        <h1>Welcome to the Trivia Game Hub!</h1>
+        <p>What is your name?</p>
+        <form method="POST" action="{{ url_for('home') }}">
+            <input type="text" name="name" placeholder="Enter your name" autofocus>
+            <input type="hidden" name="action" value="submit_name">
+            <br><br>
+            <button type="submit">Continue</button>
+        </form>
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+    <!-- ── MODE: name is "db" → ask about login ── -->
+    {% elif mode == "login_prompt" %}
+        <h1>Welcome back!</h1>
+        <p>That name is reserved. Do you want to login?</p>
+        <a href="{{ url_for('auth.login') }}" class="btn">Yes, Login</a>
+        <form method="POST" action="{{ url_for('home') }}" style="display:inline;">
+            <input type="hidden" name="action" value="choose_another">
+            <button type="submit" class="btn btn-secondary">No, choose another name</button>
+        </form>
+
+    <!-- ── MODE: valid name → guest or register ── -->
+    {% elif mode == "guest_or_register" %}
+        <h1>Hi, {{ name }}!</h1>
+        <p>How do you want to play?</p>
+        <form method="POST" action="{{ url_for('home') }}" style="display:inline;">
+            <input type="hidden" name="action" value="play_guest">
+            <button type="submit" class="btn">Play as Guest</button>
+        </form>
+        <a href="{{ url_for('auth.register') }}" class="btn">Register</a>
+
+    <!-- ── MODE: hub — player is identified, show games ── -->
+    {% elif mode == "hub" %}
+        <h1>🎮 Welcome, {{ session.get('username') or session.get('player_name') }}!</h1>
+        <p>Choose a game:</p>
+        <a href="{{ url_for('geography.index') }}" class="btn">🌍 Geography Game</a>
+        <br><br>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary">Logout</a>
+
+    {% endif %}
+
 </body>
 </html>

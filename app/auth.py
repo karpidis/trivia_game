@@ -48,7 +48,7 @@ def register():
 
     # Username is free — create a new User object.
     # Password is stored as plain text for now (educational project).
-    new_user = User(username=username, password=password)
+    new_user = User(username=username, password_hash=password)
 
     # db.session is like a shopping basket.
     # add() puts the new user in the basket.
@@ -86,7 +86,7 @@ def login():
     # Check two things:
     # 1. Did we find a user with that username?
     # 2. Does the password match?
-    if not user or user.password != password:
+    if not user or user.password_hash != password:
         # We give a vague message on purpose — we do not want to tell
         # an attacker whether the username or the password was wrong.
         return render_template('login.html', error='Invalid username or password.')
@@ -96,7 +96,7 @@ def login():
     # across all future requests.
     # session is like a small locker tied to the browser. Flask signs
     # it with SECRET_KEY so the user cannot tamper with it.
-    session['user_id'] = user.id
+    session['user_id'] = user.user_id
     session['username'] = user.username
 
     return redirect(url_for('home'))
